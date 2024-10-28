@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complete World Editor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.10.0/p5.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+        }
+        .controls {
+            margin: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-width: 600px;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            gap: 10px;
+        }
+        .control-group label {
+            min-width: 100px;
+            font-weight: bold;
+        }
+        .emoji-select-container {
+            position: relative;
+            width: 300px;
+        }
+        #emojiSearch {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 5px;
+        }
+        #emojiDropdown {
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            z-index: 1000;
+            display: none;
+        }
+        .emoji-option {
+            padding: 8px;
+            cursor: pointer;
+        }
+        .emoji-option:hover {
+            background: #f0f0f0;
+        }
+        input, button {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            min-width: 80px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .navigation-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            width: 150px;
+            margin: 10px auto;
+        }
+        .navigation-controls button {
+            padding: 5px;
+            font-size: 16px;
+        }
+        .member-variables {
+            background: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .member-variables h3 {
+            margin: 0 0 10px 0;
+        }
+        .member-variables code {
+            display: block;
+            margin: 5px 0;
+            font-family: monospace;
+        }
+        .file-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .file-input {
+            display: none;
+        }
+        .file-label {
+            background: #4CAF50;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .file-label:hover {
+            background: #45a049;
+        }
+        #loadStatus {
+            color: #666;
+            margin-left: 10px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <div class="member-variables">
+            <h3>GameObject Class Members:</h3>
+            <code>x: number - X coordinate position</code>
+            <code>y: number - Y coordinate position</code>
+            <code>emoji: string - Object's emoji character</code>
+            <code>size: number - Display size of emoji</code>
+            <code>renderOrder: number - Layer order (lower renders first)</code>
+        </div>
+
+        <div class="file-controls">
+            <input type="file" id="loadFile" class="file-input" accept=".txt">
+            <label for="loadFile" class="file-label">Load World</label>
+            <button onclick="saveToFile()">Save World</button>
+            <span id="loadStatus"></span>
+        </div>
+        
+        <div class="control-group">
+            <label>Emoji:</label>
+            <div class="emoji-select-container">
+                <input type="text" id="emojiSearch" placeholder="Search emoji...">
+                <div id="emojiDropdown"></div>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label>Size:</label>
+            <input type="number" id="sizeInput" value="40" placeholder="Size">
+        </div>
+        
+        <div class="control-group">
+            <label>Render Order:</label>
+            <input type="number" id="renderOrderInput" value="0" placeholder="Render Order">
+        </div>
+
+        <div class="navigation-controls">
+            <button></button>
+            <button onclick="moveArea(0, -1)">⬆️</button>
+            <button></button>
+            <button onclick="moveArea(-1, 0)">⬅️</button>
+            <button onclick="clearCurrentArea()">Clear</button>
+            <button onclick="moveArea(1, 0)">➡️</button>
+            <button></button>
+            <button onclick="moveArea(0, 1)">⬇️</button>
+            <button></button>
+        </div>
+
+        <div id="status">Current Area: 0, 0</div>
+    </div>
+
+    <script>
+        // GameObject class definition
+        class GameObject {
+            constructor(x, y, emoji, size, renderOrder = 0) {
+                this.x = x;
+                this.y = y;
+                this.emoji = emoji;
+                this.size = size;
+                this.renderOrder = renderOrder;
+            }
+        }
+
+        // Emoji categories
+        const emojiCategories = {
+            "Faces": ["😊","😂","😍","🤔","😎","🥳","😴","🤮","😱"],
+            "Nature": ["🌳","🌺","🌞","⭐","🌙","🌈","🌊","🔥","❄️"],
+            "Animals": ["🐶","🐱","🐭","🐰","🦊","🐻","🐼","🐨","🦁"],
+            "Objects": ["📱","💻","🎮","📚","🎵","🎨","🎭","🎪","🎯"],
+            "Food": ["🍎","🍕","🍦","🍪","🍩","🍗","🥕","🥑","🌮"],
+            "Symbols": ["❤️","💫","💥","✨","💭","💡","❌","✅","💎"]
+        };
+
+        // Global variables
+        let currentArea = { x: 0, y: 0 };
+        let worldAreas = new Map();
+        let canvas;
+        let currentEmoji = "😊";
+
+        // Initialize emoji dropdown functionality
+        const dropdown = document.getElementById('emojiDropdown');
+        const searchInput = document.getElementById('emojiSearch');
+
+        function populateEmojiDropdown(filter = '') {
+            dropdown.innerHTML = '';
+            for (const [category, emojis] of Object.entries(emojiCategories)) {
+                if (filter) {
+                    const filteredEmojis = emojis.filter(emoji => 
+                        emoji.toLowerCase().includes(filter.toLowerCase()));
+                    if (filteredEmojis.length === 0) continue;
+                    
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.innerHTML = `<strong>${category}:</strong>`;
+                    dropdown.appendChild(categoryDiv);
+                    
+                    filteredEmojis.forEach(emoji => {
+                        const option = document.createElement('div');
+                        option.className = 'emoji-option';
+                        option.textContent = emoji;
+                        option.onclick = () => {
+                            currentEmoji = emoji;
+                            searchInput.value = emoji;
+                            dropdown.style.display = 'none';
+                        };
+                        dropdown.appendChild(option);
+                    });
+                } else {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.innerHTML = `<strong>${category}:</strong>`;
+                    dropdown.appendChild(categoryDiv);
+                    
+                    emojis.forEach(emoji => {
+                        const option = document.createElement('div');
+                        option.className = 'emoji-option';
+                        option.textContent = emoji;
+                        option.onclick = () => {
+                            currentEmoji = emoji;
+                            searchInput.value = emoji;
+                            dropdown.style.display = 'none';
+                        };
+                        dropdown.appendChild(option);
+                    });
+                }
+            }
+        }
+
+        // Search input event handlers
+        searchInput.addEventListener('input', (e) => {
+            const filter = e.target.value;
+            dropdown.style.display = 'block';
+            populateEmojiDropdown(filter);
+        });
+
+        searchInput.addEventListener('focus', () => {
+            dropdown.style.display = 'block';
+            populateEmojiDropdown(searchInput.value);
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.emoji-select-container')) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // File loading handler
+        document.getElementById('loadFile').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                try {
+                    const success = loadWorldData(e.target.result);
+                    if (success) {
+                        document.getElementById('loadStatus').textContent = 
+                            `Successfully loaded: ${file.name}`;
+                    } else {
+                        document.getElementById('loadStatus').textContent = 
+                            'Error: Failed to load world data';
+                    }
+                } catch (error) {
+                    document.getElementById('loadStatus').textContent = 
+                        'Error: Invalid file format';
+                    console.error('Load error:', error);
+                }
+            };
+            
+            reader.onerror = (e) => {
+                document.getElementById('loadStatus').textContent = 
+                    'Error: Failed to read file';
+                console.error('File read error:', e);
+            };
+            
+            reader.readAsText(file);
+        });
+
+        // P5.js setup function
+        function setup() {
+            canvas = createCanvas(800, 600);
+            canvas.mousePressed(handleCanvasClick);
+            textAlign(CENTER, CENTER);
+            
+            const areaKey = `${currentArea.x},${currentArea.y}`;
+            if (!worldAreas.has(areaKey)) {
+                worldAreas.set(areaKey, []);
+            }
+        }
+
+        // P5.js draw function
+        function draw() {
+            background(240);
+            
+            // Draw grid
+            stroke(200);
+            for (let x = 0; x < width; x += 50) {
+                line(x, 0, x, height);
+            }
+            for (let y = 0; y < height; y += 50) {
+                line(0, y, width, y);
+            }
+            
+            // Draw objects
+            const areaKey = `${currentArea.x},${currentArea.y}`;
+            const objects = worldAreas.get(areaKey) || [];
+            
+            objects.sort((a, b) => a.renderOrder - b.renderOrder);
+            
+            for (const obj of objects) {
+                textSize(obj.size);
+                noStroke();
+                text(obj.emoji, obj.x, obj.y);
+            }
+        }
+
+        // Canvas click handler
+        function handleCanvasClick() {
+            const size = parseInt(document.getElementById('sizeInput').value);
+            const renderOrder = parseInt(document.getElementById('renderOrderInput').value);
+            
+            const areaKey = `${currentArea.x},${currentArea.y}`;
+            if (!worldAreas.has(areaKey)) {
+                worldAreas.set(areaKey, []);
+            }
+            
+            const obj = new GameObject(mouseX, mouseY, currentEmoji, size, renderOrder);
+            worldAreas.get(areaKey).push(obj);
+        }
+
+        // Area navigation function
+        function moveArea(dx, dy) {
+            currentArea.x += dx;
+            currentArea.y += dy;
+            
+            const areaKey = `${currentArea.x},${currentArea.y}`;
+            if (!worldAreas.has(areaKey)) {
+                worldAreas.set(areaKey, []);
+            }
+            
+            document.getElementById('status').textContent = 
+                `Current Area: ${currentArea.x}, ${currentArea.y}`;
+        }
+
+        // Clear current area function
+        function clearCurrentArea() {
+            const areaKey = `${currentArea.x},${currentArea.y}`;
+            worldAreas.set(areaKey, []);
+        }
+
+        // Save to file function
+        function saveToFile() {
+            let output = '';
+            for (const [areaKey, objects] of worldAreas.entries()) {
+                const [areaX, areaY] = areaKey.split(',').map(Number);
+                output += `Area ${areaX},${areaY}:\n`;
+                for (const obj of objects) {
+                    output += `${obj.x},${obj.y},${obj.emoji},${obj.size},${obj.renderOrder}\n`;
+                }
+                output += '\n';
+            }
+            
+            const blob = new Blob([output], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'world_data.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Load world data function
+        function loadWorldData(fileContent) {
+            try {
+                worldAreas.clear();
+                
+                let currentLoadingArea = null;
+                let currentObjects = [];
+                
+                const lines = fileContent.split('\n');
+                
+                for (let line of lines) {
+                    line = line.trim();
+                    
+                    if (!line) {
+                        if (currentLoadingArea && currentObjects.length > 0) {
+                            const areaKey = `${currentLoadingArea.x},${currentLoadingArea.y}`;
+                            worldAreas.set(areaKey, currentObjects);
+                            currentObjects = [];
+                        }
+                        continue;
+                    }
+                    
+                    if (line.startsWith('Area')) {
+                // Parse area coordinates (format: "Area x,y:")
+                const match = line.match(/Area (-?\d+),(-?\d+):/);
+                if (match) {
+                    // Save previous area objects if they exist
+                    if (currentLoadingArea && currentObjects.length > 0) {
+                        const areaKey = `${currentLoadingArea.x},${currentLoadingArea.y}`;
+                        worldAreas.set(areaKey, currentObjects);
+                        currentObjects = [];
+                    }
+                    
+                    // Set new current area
+                    currentLoadingArea = {
+                        x: parseInt(match[1]),
+                        y: parseInt(match[2])
+                    };
+                }
+            } else {
+                // Parse object data (format: "x,y,emoji,size,renderOrder")
+                const parts = line.split(',');
+                if (parts.length >= 5 && currentLoadingArea) {
+                    const gameObject = new GameObject(
+                        parseFloat(parts[0]),  // x
+                        parseFloat(parts[1]),  // y
+                        parts[2],              // emoji
+                        parseFloat(parts[3]),  // size
+                        parseInt(parts[4])     // renderOrder
+                    );
+                    currentObjects.push(gameObject);
+                }
+            }
+        }
+        
+        // Save last area if it exists
+        if (currentLoadingArea && currentObjects.length > 0) {
+            const areaKey = `${currentLoadingArea.x},${currentLoadingArea.y}`;
+            worldAreas.set(areaKey, currentObjects);
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Error loading world data:', error);
+        return false;
+    }
+}
+
+</script>
+</body>
+</html>
