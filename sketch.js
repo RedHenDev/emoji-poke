@@ -13,20 +13,26 @@ const djb2Hash = str => {
 // Convert to unsigned 32-bit integer.
 };
 
-let worldName=prompt('name?');
-let worldSeed=djb2Hash(worldName);
+//let worldName=prompt('name?');
+//let worldSeed=djb2Hash(worldName);
+const worldSeed=1234;
+
+function preload(){
+  initializeWorld();
+}
 
 function setup() {
   createCanvas(windowWidth,
                windowHeight);
   textSize(txtSize);
   textAlign(CENTER, CENTER);
-  generateArea(currentArea.x,
-               currentArea.y);
+  // initializeWorld();
+  generateArea(0,
+                0);
+  //generateAreaIfNeeded();
 }
 
 function draw() {
-  
   // Move player towards target.
   playerLocomotion();
   drawAreaObjects();

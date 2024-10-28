@@ -26,7 +26,7 @@ class NoiseGenerator {
   next() {
     this.index++;
     return abs(sin(this.seed *
-                   this.index)) % 1;
+                   this.index));
   }
   
   nextRange(min, max) {

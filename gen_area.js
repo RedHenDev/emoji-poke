@@ -179,5 +179,8 @@ function generateArea(areaX, areaY) {
     let areaImage = renderAreaToImage(objects);
     areaImages.set(key, areaImage);
   }
+  let areaImage = 
+  renderAreaToImage(worldAreas.get(key));
+  areaImages.set(key, areaImage);
 }
 

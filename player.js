@@ -3,7 +3,7 @@ const txtSize = 64;
 let player = {
   x: 200,
   y: 200,
-  speed: 1,
+  speed: 10,
   emoji: '🦆',
   size: txtSize
 };
