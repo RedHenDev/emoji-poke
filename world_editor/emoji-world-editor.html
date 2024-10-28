@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emoji World Editor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+        }
+        .controls {
+            margin: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-width: 600px;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            gap: 10px;
+        }
+        .control-group label {
+            min-width: 100px;
+            font-weight: bold;
+        }
+        .emoji-select-container {
+            position: relative;
+            width: 300px;
+        }
+        #emojiSearch {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 5px;
+        }
+        #emojiDropdown {
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            z-index: 1000;
+            display: none;
+        }
+        .emoji-option {
+            padding: 8px;
+            cursor: pointer;
+        }
+        .emoji-option:hover {
+            background: #f0f0f0;
+        }
+        input, button {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            min-width: 80px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .navigation-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            width: 150px;
+            margin: 10px auto;
+        }
+        .navigation-controls button {
+            padding: 5px;
+            font-size: 16px;
+        }
+        .member-variables {
+            background: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .member-variables h3 {
+            margin: 0 0 10px 0;
+        }
+        .member-variables code {
+            display: block;
+            margin: 5px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <div class="member-variables">
+            <h3>GameObject Class Members:</h3>
+            <code>x: number - X coordinate position</code>
+            <code>y: number - Y coordinate position</code>
+            <code>emoji: string - Object's emoji character</code>
+            <code>size: number - Display size of emoji</code>
+            <code>renderOrder: number - Layer order (lower renders first)</code>
+        </div>
+        
+        <div class="control-group">
+            <label>Emoji:</label>
+            <div class="emoji-select-container">
+                <input type="text" id="emojiSearch" placeholder="Search emoji...">
+                <div id="emojiDropdown"></div>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label>Size:</label>
+            <input type="number" id="sizeInput" value="40" placeholder="Size">
+        </div>
+        
+        <div class="control-group">
+            <label>Render Order:</label>
+            <input type="number" id="renderOrderInput" value="0" placeholder="Render Order">
+        </div>
+
+        <div class="navigation-controls">
+            <button></button>
+            <button onclick="moveArea(0, -1)">⬆️</button>
+            <button></button>
+            <button onclick="moveArea(-1, 0)">⬅️</button>
+            <button onclick="clearCurrentArea()">Clear</button>
+            <button onclick="moveArea(1, 0)">➡️</button>
+            <button></button>
+            <button onclick="moveArea(0, 1)">⬇️</button>
+            <button></button>
+        </div>
+
+        <div class="control-group">
+            <button onclick="saveToFile()">Save to File</button>
+            <div id="status">Current Area: 0, 0</div>
+        </div>
+    </div>
+
+    <script>
+        // Common emojis categorized
+        const emojiCategories = {
+            "Faces": ["😊","😂","😍","🤔","😎","🥳","😴","🤮","😱"],
+            "Nature": ["🌳","🌺","🌞","⭐","🌙","🌈","🌊","🔥","❄️"],
+            "Animals": ["🐶","🐱","🐭","🐰","🦊","🐻","🐼","🐨","🦁"],
+            "Objects": ["📱","💻","🎮","📚","🎵","🎨","🎭","🎪","🎯"],
+            "Food": ["🍎","🍕","🍦","🍪","🍩","🍗","🥕","🥑","🌮"],
+            "Symbols": ["❤️","💫","💥","✨","💭","💡","❌","✅","💎"]
+        };
+
+        class GameObject {
+            constructor(x, y, emoji, size, renderOrder = 0) {
+                this.x = x;
+                this.y = y;
+                this.emoji = emoji;
+                this.size = size;
+                this.renderOrder = renderOrder;
+            }
+        }
+
+        let currentArea = { x: 0, y: 0 };
+        let worldAreas = new Map();
+        let canvas;
+        let currentEmoji = "😊";
+
+        // Initialize emoji dropdown
+        const dropdown = document.getElementById('emojiDropdown');
+        const searchInput = document.getElementById('emojiSearch');
+        
+        // Create emoji dropdown content
+        function populateEmojiDropdown(filter = '') {
+            dropdown.innerHTML = '';
+            for (const [category, emojis] of Object.entries(emojiCategories)) {
+                if (filter) {
+                    const filteredEmojis = emojis.filter(emoji => 
+                        emoji.toLowerCase().includes(filter.toLowerCase()));
+                    if (filteredEmojis.length === 0) continue;
+                    
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.innerHTML = `<strong>${category}:</strong>`;
+                    dropdown.appendChild(categoryDiv);
+                    
+                    filteredEmojis.forEach(emoji => {
+                        const option = document.createElement('div');
+                        option.className = 'emoji-option';
+                        option.textContent = emoji;
+                        option.onclick = () => {
+                            currentEmoji = emoji;
+                            searchInput.value = emoji;
+                            dropdown.style.display = 'none';
+                        };
+                        dropdown.appendChild(option);
+                    });
+                } else {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.innerHTML = `<strong>${category}:</strong>`;
+                    dropdown.appendChild(categoryDiv);
+                    
+                    emojis.forEach(emoji => {
+                        const option = document.createElement('div');
+                        option.className = 'emoji-option';
+                        option.textContent = emoji;
+                        option.onclick = () => {
+                            currentEmoji = emoji;
+                            searchInput.value = emoji;
+                            dropdown.style.display = 'none';
+                        };
+                        dropdown.appendChild(option);
+                    });
+                }
+            }
+        }
+
+        // Search input handler
+        searchInput.addEventListener('input', (e) => {
+            const filter = e.target.value;
+            dropdown.style.display = 'block';
+            populateEmojiDropdown(filter);
+        });
+
+        searchInput.addEventListener('focus', () => {
+            dropdown.style.display = 'block';
+            populateEmojiDropdown(searchInput.value);
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.emoji-select-container')) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        function setup() {
+            canvas = createCanvas(800, 600);
+            canvas.mousePressed(handleCanvasClick);
+            textAlign(CENTER, CENTER);
+            
+            const areaKey = `${currentArea.x},${currentArea.y}`;
+            if (!worldAreas.has(areaKey)) {
+                worldAreas.set(areaKey, []);
+            }
+        }
+
+        function draw() {
+            background(240);
+            
+            // Draw grid
+            stroke(200);
+            for (let x = 0; x < width; x += 50) {
+                line(x, 0, x, height);
+            }
+            for (let y = 0; y < height; y += 50) {
+                line(0, y, width, y);
+            }
+            
+            const areaKey = `${currentArea.x},${currentArea.y}`;
+            const objects = worldAreas.get(areaKey) || [];
+            
+            objects.sort((a, b) => a.renderOrder - b.renderOrder);
+            
+            for (const obj of objects) {
+                textSize(obj.size);
+                noStroke();
+                text(obj.emoji, obj.x, obj.y);
+            }
+        }
+
+        function handleCanvasClick() {
+            const size = parseInt(document.getElementById('sizeInput').value);
+            const renderOrder = parseInt(document.getElementById('renderOrderInput').value);
+            
+            const areaKey = `${currentArea.x},${currentArea.y}`;
+            if (!worldAreas.has(areaKey)) {
+                worldAreas.set(areaKey, []);
+            }
+            
+            const obj = new GameObject(mouseX, mouseY, currentEmoji, size, renderOrder);
+            worldAreas.get(areaKey).push(obj);
+        }
+
+        function moveArea(dx, dy) {
+            currentArea.x += dx;
+            currentArea.y += dy;
+            
+            const areaKey = `${currentArea.x},${currentArea.y}`;
+            if (!worldAreas.has(areaKey)) {
+                worldAreas.set(areaKey, []);
+            }
+            
+            document.getElementById('status').textContent = 
+                `Current Area: ${currentArea.x}, ${currentArea.y}`;
+        }
+
+        function clearCurrentArea() {
+            const areaKey = `${currentArea.x},${currentArea.y}`;
+            worldAreas.set(areaKey, []);
+        }
+
+        function saveToFile() {
+            let output = '';
+            for (const [areaKey, objects] of worldAreas.entries()) {
+                const [areaX, areaY] = areaKey.split(',').map(Number);
+                output += `Area ${areaX},${areaY}:\n`;
+                for (const obj of objects) {
+                    output += `${obj.x},${obj.y},${obj.emoji},${obj.size},${obj.renderOrder}\n`;
+                }
+                output += '\n';
+            }
+            
+            const blob = new Blob([output], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'world_data.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function keyPressed() {
+            switch (keyCode) {
+                case LEFT_ARROW:
+                    moveArea(-1, 0);
+                    break;
+                case RIGHT_ARROW:
+                    moveArea(1, 0);
+                    break;
+                case UP_ARROW:
+                    moveArea(0, -1);
+                    break;
+                case DOWN_ARROW:
+                    moveArea(0, 1);
+                    break;
+            }
+            return false;
+        }
+    </script>
+</body>
+</html>
