@@ -16,14 +16,14 @@ function generateArea(areaX, areaY) {
     let humidity = noise.nextRange(0, 1);
     let elevation = noise.nextRange(0, 1);
     
-    // Define render order constants
+    // Define render order constants.
     const RENDER_ORDER = {
       PATH: 0,
       GROUND_DECORATION: 1,  // flowers, mushrooms
       TREE: 2
     };
     
-    // Generate paths first (moved from bottom)
+    // Generate paths first (moved from bottom).
     if (noise.nextBool(0.6)) {
       let pathType = noise.nextInt(0, 1);
       let pathNoise = new NoiseGenerator(baseSeed * 1.4);
@@ -37,7 +37,7 @@ function generateArea(areaX, areaY) {
           objects.push(new GameObject(
             x,
             baseY + yOffset,
-            '⬜',
+            'o',
             txtSize,
             RENDER_ORDER.PATH
           ));
@@ -79,7 +79,7 @@ function generateArea(areaX, areaY) {
       }
     }
     
-    // Generate flower patches
+    // Generate flower patches.
     const numFlowerPatches = flowerNoise.nextInt(3, 6);
     for (let patch = 0; patch < numFlowerPatches; patch++) {
       let patchX = flowerNoise.nextRange(50, width - 50);

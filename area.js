@@ -70,7 +70,6 @@ function renderAreaToImage(objects) {
   return buffer;
 }
 
-
 function generateAreaIfNeeded() {
   generateArea(currentArea.x,
                currentArea.y);
