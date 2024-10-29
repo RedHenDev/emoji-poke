@@ -1,10 +1,13 @@
 // Global so that we can display this etc.
 let key;
 function generateArea(areaX, areaY) {
+  // txtSize used to scale objects.
+  let txtSize=player.size;
   moving = false;
   key = `${areaX},${areaY}`;
   
-  if (!worldAreas.has(key)) {
+  if (!worldAreas.has(key) || 
+      key!=='0,0') {
     let objects = [];
     let baseSeed = generateSeedForArea(areaX, areaY);
     let noise = new NoiseGenerator(baseSeed);
@@ -179,8 +182,10 @@ function generateArea(areaX, areaY) {
     let areaImage = renderAreaToImage(objects);
     areaImages.set(key, areaImage);
   }
-  let areaImage = 
-  renderAreaToImage(worldAreas.get(key));
-  areaImages.set(key, areaImage);
+  // Render already created
+  // area.
+ let objects = worldAreas.get(key);
+ let areaImage = renderAreaToImage(objects);
+   areaImages.set(key, areaImage);
 }
 

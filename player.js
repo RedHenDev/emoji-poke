@@ -1,11 +1,11 @@
-const txtSize = 64;
+//const txtSize = 64;
 
 let player = {
   x: 200,
   y: 200,
   speed: 10,
   emoji: '🦆',
-  size: txtSize
+  size: 0
 };
 
 let targetX = 200;

@@ -18,6 +18,7 @@ const worldSeed=1234;
 
 function preload(){
   initializeWorld();
+  
 }
 
 function setup() {
@@ -27,13 +28,12 @@ function setup() {
           windowHeight :
           windowWidth;
   createCanvas(w,w);
-  textSize(txtSize);
+
   textAlign(CENTER, CENTER);
-  // initializeWorld();
-  generateArea(0,
-                0);
-  //generateAreaIfNeeded();
-  player.textSize=w/12;
+  
+  generateArea(0,0);
+ 
+  player.size=w/10;
 }
 
 function draw() {
@@ -42,6 +42,7 @@ function draw() {
   drawAreaObjects();
   drawPlayer();
   textSize(26);
+  strokeWeight(4);
   stroke(0); fill(255);
   text(`area ${key}`,64,20);
   text(`world seed ${worldSeed}`,
