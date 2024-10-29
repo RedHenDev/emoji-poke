@@ -21,7 +21,7 @@ function preload(){
 }
 
 function setup() {
-  // Take square size of smallest.
+  // Take square size of smallest for canvas.
   let w = windowWidth >
           windowHeight ? 
           windowHeight :

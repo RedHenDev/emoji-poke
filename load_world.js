@@ -72,13 +72,18 @@ function loadWorldData(fileContent) {
                     };
                 }
             } else {
+                // Take square size of smallest.
+                let w = windowWidth >
+                windowHeight ? 
+                windowHeight :
+                windowWidth;
                 // Parse object data (format: "x,y,emoji,size,renderOrder")
                 const parts = line.split(',');
                 if (parts.length >= 5 && currentLoadingArea) {
                     const gameObject = new GameObject(
                         // Map x and y to current window.
-                        map(parseFloat(parts[0]),0,800,0,windowHeight),  // x
-                        map(parseFloat(parts[1]),0,800,0,windowHeight),  // y
+                        map(parseFloat(parts[0]),0,800,0,w),  // x
+                        map(parseFloat(parts[1]),0,800,0,w),  // y
                         parts[2],              // emoji
                         parseFloat(parts[3]),  // size
                         parseInt(parts[4])     // renderOrder
