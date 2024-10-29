@@ -76,8 +76,9 @@ function loadWorldData(fileContent) {
                 const parts = line.split(',');
                 if (parts.length >= 5 && currentLoadingArea) {
                     const gameObject = new GameObject(
-                        parseFloat(parts[0]),  // x
-                        parseFloat(parts[1]),  // y
+                        // Map x and y to current window.
+                        map(parseFloat(parts[0]),0,800,0,windowHeight),  // x
+                        map(parseFloat(parts[1]),0,800,0,windowHeight),  // y
                         parts[2],              // emoji
                         parseFloat(parts[3]),  // size
                         parseInt(parts[4])     // renderOrder
