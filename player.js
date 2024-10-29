@@ -21,8 +21,8 @@ function mousePressed() {
 function drawPlayer(){
   textSize(player.size);
   text(player.emoji,
-       player.x,
-       player.y);
+       round(player.x/player.size)*player.size,
+       round(player.y/player.size)*player.size);
 }
 
 function playerLocomotion(){
