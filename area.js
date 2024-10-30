@@ -7,12 +7,13 @@ let areaImages = new Map();
 // to include render order.
 class GameObject {
   constructor(x, y, emoji, size,
-               renderOrder = 0) {
+               renderOrder = 0, solid = false) {
     this.x = x;
     this.y = y;
     this.emoji = emoji;
     this.size = size;
     this.renderOrder = renderOrder;
+    this.solid = solid;
   }
 }
 

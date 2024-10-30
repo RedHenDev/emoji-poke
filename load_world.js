@@ -77,23 +77,25 @@ function loadWorldData(fileContent) {
                 windowHeight ? 
                 windowHeight :
                 windowWidth;
-                // Parse object data (format: "x,y,emoji,size,renderOrder")
+                // Parse object data (format: "x,y,emoji,size,renderOrder,solid").
+                // NB 6 parts at time of writing (solid is last).
                 const parts = line.split(',');
-                if (parts.length >= 5 && currentLoadingArea) {
+                if (parts.length >= 6 && currentLoadingArea) {
                     const gameObject = new GameObject(
-                        // Map x and y to current window.
+                        // Map x and y to current window size, w.
                         map(parseFloat(parts[0]),0,800,0,w),  // x
                         map(parseFloat(parts[1]),0,800,0,w),  // y
                         parts[2],              // emoji
                         parseFloat(parts[3]),  // size
-                        parseInt(parts[4])     // renderOrder
+                        parseInt(parts[4]),     // renderOrder
+                        parts[5]==="1",     // solid
                     );
                     currentObjects.push(gameObject);
                 }
             }
         }
         
-        // Save last area if it exists
+        // Save last area if it exists.
         if (currentLoadingArea && currentObjects.length > 0) {
             const areaKey = `${currentLoadingArea.x},${currentLoadingArea.y}`;
             worldAreas.set(areaKey, currentObjects);
