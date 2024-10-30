@@ -1,4 +1,5 @@
 // Function to load world data from a specific file in the same directory
+let ready=false;
 async function loadWorldDataFromFile(filename = 'world_data.txt') {
     try {
         const response = await fetch(filename);
@@ -19,6 +20,7 @@ async function initializeWorld() {
     const success = await loadWorldDataFromFile();
     if (success) {
         console.log('World data loaded successfully');
+        generateAreaIfNeeded();
         ready=true;
     } else {
         console.error('Failed to load world data');

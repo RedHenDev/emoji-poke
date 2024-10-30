@@ -34,18 +34,20 @@ function setup() {
 
   textAlign(CENTER, CENTER);
   player.size=w/10;
-  generateArea(0,-1);
+  //generateArea(0,-1);
   //generateArea(0,0);
-  generateAreaIfNeeded(0,0);
+  //generateAreaIfNeeded();
   //drawAreaObjects();
   
 }
 
 function draw() {
   // Move player towards target.
-  playerLocomotion();
-  drawAreaObjects();
-  drawPlayer();
+  if (ready){
+    playerLocomotion();
+    drawAreaObjects();
+    drawPlayer();
+  }
   textSize(26);
   strokeWeight(4);
   stroke(0); fill(255);
