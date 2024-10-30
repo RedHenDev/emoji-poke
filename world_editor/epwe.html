@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Complete World Editor</title>
+    <title>Emoji-Poke World Editor</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.10.0/p5.js"></script>
     <style>
         body {
@@ -135,6 +135,7 @@
             <code>emoji: string - Object's emoji character</code>
             <code>size: number - Display size of emoji</code>
             <code>renderOrder: number - Layer order (lower renders first)</code>
+            <code>solid: number - Is object solid obstacle?</code>
         </div>
 
         <div class="file-controls">
@@ -162,6 +163,11 @@
             <input type="number" id="renderOrderInput" value="0" placeholder="Render Order">
         </div>
 
+        <div class="control-group">
+            <label>Solid:</label>
+            <input type="number" id="solidInput" value="0" placeholder="Solid?">
+        </div>
+
         <div class="navigation-controls">
             <button></button>
             <button onclick="moveArea(0, -1)">⬆️</button>
@@ -180,12 +186,14 @@
     <script>
         // GameObject class definition
         class GameObject {
-            constructor(x, y, emoji, size, renderOrder = 0) {
+            constructor(x, y, emoji, 
+            size, renderOrder = 0, solid = 0) {
                 this.x = x;
                 this.y = y;
                 this.emoji = emoji;
                 this.size = size;
                 this.renderOrder = renderOrder;
+                this.solid = solid;
             }
         }
 
@@ -205,7 +213,7 @@
         let canvas;
         let currentEmoji = "😊";
 
-        // Initialize emoji dropdown functionality
+        // Initialize emoji dropdown functionality.
         const dropdown = document.getElementById('emojiDropdown');
         const searchInput = document.getElementById('emojiSearch');
 
@@ -252,7 +260,7 @@
             }
         }
 
-        // Search input event handlers
+        // Search input event handlers.
         searchInput.addEventListener('input', (e) => {
             const filter = e.target.value;
             dropdown.style.display = 'block';
@@ -264,7 +272,7 @@
             populateEmojiDropdown(searchInput.value);
         });
 
-        // Close dropdown when clicking outside
+        // Close dropdown when clicking outside.
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.emoji-select-container')) {
                 dropdown.style.display = 'none';
@@ -304,7 +312,7 @@
             reader.readAsText(file);
         });
 
-        // P5.js setup function
+        // P5.js setup function.
         function setup() {
             canvas = createCanvas(800, 800);
             canvas.mousePressed(handleCanvasClick);
@@ -316,12 +324,12 @@
             }
         }
 
-        // P5.js draw function
         function draw() {
             background(240);
             
-            // Draw grid
+            // Draw grid.
             stroke(200);
+            strokeWeight(1);
             for (let x = 0; x < width; x += width/10) {
                 line(x, 0, x, height);
             }
@@ -329,7 +337,7 @@
                 line(0, y, width, y);
             }
             
-            // Draw objects
+            // Draw objects.
             const areaKey = `${currentArea.x},${currentArea.y}`;
             const objects = worldAreas.get(areaKey) || [];
             
@@ -339,24 +347,34 @@
                 textSize(obj.size);
                 noStroke();
                 text(obj.emoji, obj.x, obj.y);
+                if(obj.solid=='1'){
+                    stroke(0,0,0);
+                    strokeWeight(4);
+                    noFill();
+                    let osi=obj.size*0.5;
+                    rect(obj.x-osi,obj.y-osi,
+                            obj.size,obj.size);
+                }
+                fill(0);
             }
         }
 
-        // Canvas click handler
+        // Canvas click handler.
         function handleCanvasClick() {
             const size = parseInt(document.getElementById('sizeInput').value);
             const renderOrder = parseInt(document.getElementById('renderOrderInput').value);
+            const solid = parseInt(document.getElementById('solidInput').value);
             
             const areaKey = `${currentArea.x},${currentArea.y}`;
             if (!worldAreas.has(areaKey)) {
                 worldAreas.set(areaKey, []);
             }
             
-            const obj = new GameObject(mouseX, mouseY, currentEmoji, size, renderOrder);
+            const obj = new GameObject(mouseX, mouseY, currentEmoji, size, renderOrder,solid);
             worldAreas.get(areaKey).push(obj);
         }
 
-        // Area navigation function
+        // Area navigation function.
         function moveArea(dx, dy) {
             currentArea.x += dx;
             currentArea.y += dy;
@@ -376,14 +394,14 @@
             worldAreas.set(areaKey, []);
         }
 
-        // Save to file function
+        // Save to file function.
         function saveToFile() {
             let output = '';
             for (const [areaKey, objects] of worldAreas.entries()) {
                 const [areaX, areaY] = areaKey.split(',').map(Number);
                 output += `Area ${areaX},${areaY}:\n`;
                 for (const obj of objects) {
-                    output += `${obj.x},${obj.y},${obj.emoji},${obj.size},${obj.renderOrder}\n`;
+                    output += `${obj.x},${obj.y},${obj.emoji},${obj.size},${obj.renderOrder},${obj.solid}\n`;
                 }
                 output += '\n';
             }
@@ -425,36 +443,37 @@
                 // Parse area coordinates (format: "Area x,y:")
                 const match = line.match(/Area (-?\d+),(-?\d+):/);
                 if (match) {
-                    // Save previous area objects if they exist
+                    // Save previous area objects if they exist.
                     if (currentLoadingArea && currentObjects.length > 0) {
                         const areaKey = `${currentLoadingArea.x},${currentLoadingArea.y}`;
                         worldAreas.set(areaKey, currentObjects);
                         currentObjects = [];
                     }
                     
-                    // Set new current area
+                    // Set new current area.
                     currentLoadingArea = {
                         x: parseInt(match[1]),
                         y: parseInt(match[2])
                     };
                 }
             } else {
-                // Parse object data (format: "x,y,emoji,size,renderOrder")
+                // Parse object data (format: "x,y,emoji,size,renderOrder,solid")
                 const parts = line.split(',');
-                if (parts.length >= 5 && currentLoadingArea) {
+                if (parts.length >= 6 && currentLoadingArea) {
                     const gameObject = new GameObject(
                         parseFloat(parts[0]),  // x
                         parseFloat(parts[1]),  // y
                         parts[2],              // emoji
                         parseFloat(parts[3]),  // size
-                        parseInt(parts[4])     // renderOrder
+                        parseInt(parts[4]),    // renderOrder
+                        parts[5]==='1'         // solid
                     );
                     currentObjects.push(gameObject);
                 }
             }
         }
         
-        // Save last area if it exists
+        // Save last area if it exists.
         if (currentLoadingArea && currentObjects.length > 0) {
             const areaKey = `${currentLoadingArea.x},${currentLoadingArea.y}`;
             worldAreas.set(areaKey, currentObjects);

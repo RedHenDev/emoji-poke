@@ -12,9 +12,9 @@ const djb2Hash = str => {
 // Convert to unsigned 32-bit integer.
 };
 
-//let worldName=prompt('name?');
-//let worldSeed=djb2Hash(worldName);
-const worldSeed=1234;
+let worldName=prompt('name?');
+let worldSeed=djb2Hash(worldName);
+//const worldSeed=1234;
 
 function preload(){
   initializeWorld();

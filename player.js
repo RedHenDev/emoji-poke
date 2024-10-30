@@ -28,7 +28,7 @@ function drawPlayer(){
 // Collision auxillary system.
 // Collision detection helper function
 function checkCollision(x, y, gameObjects) {
-  // Convert pixel coordinates to grid coordinates
+  // Convert pixel coordinates to grid coordinates.
   const gridX = Math.floor(x / player.size);
   const gridY = Math.floor(y / player.size);
   
@@ -63,16 +63,16 @@ function playerLocomotion() {
           player.x = nextX;
           player.y = nextY;
         } else {
-          // Optional: Stop movement when collision detected
+          // Stop movement when collision detected.
           moving = false;
-          console.log('Direct hit!')
+          //console.log('Direct hit!').
         }
       } else {
         moving = false;
       }
     }
   
-  // Check screen boundaries
+  // Check screen boundaries.
   if (player.x < player.size*0.5) {
     currentArea.x--;
     player.x = width-player.size;

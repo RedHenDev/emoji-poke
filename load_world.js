@@ -30,7 +30,7 @@ async function initializeWorld() {
 // Function to load world data from a text file
 function loadWorldData(fileContent) {
     try {
-        // Clear existing world data
+        // Clear existing world data.
         worldAreas.clear();
         
         let currentLoadingArea = null;
@@ -42,7 +42,7 @@ function loadWorldData(fileContent) {
         for (let line of lines) {
             line = line.trim();
             
-            // Skip empty lines
+            // Skip empty lines.
             if (!line) {
                 if (currentLoadingArea && currentObjects.length > 0) {
                     // Save current area objects before moving to next area
@@ -65,7 +65,7 @@ function loadWorldData(fileContent) {
                         currentObjects = [];
                     }
                     
-                    // Set new current area
+                    // Set new current area.
                     currentLoadingArea = {
                         x: parseInt(match[1]),
                         y: parseInt(match[2])
@@ -87,8 +87,8 @@ function loadWorldData(fileContent) {
                         map(parseFloat(parts[1]),0,800,0,w),  // y
                         parts[2],              // emoji
                         parseFloat(parts[3]),  // size
-                        parseInt(parts[4]),     // renderOrder
-                        parts[5]==="1",     // solid
+                        parseInt(parts[4]),    // renderOrder
+                        parts[5]==='1',        // solid
                     );
                     currentObjects.push(gameObject);
                 }
