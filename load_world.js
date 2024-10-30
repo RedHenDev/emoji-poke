@@ -19,6 +19,7 @@ async function initializeWorld() {
     const success = await loadWorldDataFromFile();
     if (success) {
         console.log('World data loaded successfully');
+        ready=true;
     } else {
         console.error('Failed to load world data');
     }
@@ -27,7 +28,7 @@ async function initializeWorld() {
 // Call during setup or when the application starts
 //initializeWorld();
 
-// Function to load world data from a text file
+// Function to load world data from a text file.
 function loadWorldData(fileContent) {
     try {
         // Clear existing world data.
@@ -73,7 +74,7 @@ function loadWorldData(fileContent) {
                 }
             } else {
                 // Take square size of smallest.
-                let w = windowWidth >
+                const w = windowWidth >
                 windowHeight ? 
                 windowHeight :
                 windowWidth;
@@ -94,13 +95,19 @@ function loadWorldData(fileContent) {
                 }
             }
         }
+
+        // Render loaded areas.
+        // let areaImage = renderAreaToImage(currentObjects);
+        // areaImages.set(currentLoadingArea, areaImage);
+        // console.log('rendering load...');
+        //drawAreaObjects();
         
         // Save last area if it exists.
         if (currentLoadingArea && currentObjects.length > 0) {
             const areaKey = `${currentLoadingArea.x},${currentLoadingArea.y}`;
             worldAreas.set(areaKey, currentObjects);
         }
-        
+
         return true;
     } catch (error) {
         console.error('Error loading world data:', error);

@@ -12,16 +12,19 @@ const djb2Hash = str => {
 // Convert to unsigned 32-bit integer.
 };
 
-let worldName=prompt('name?');
-let worldSeed=djb2Hash(worldName);
-//const worldSeed=1234;
+//let worldName=prompt('name?');
+//let worldSeed=djb2Hash(worldName);
+const worldSeed=1234;
 
 function preload(){
+  
   initializeWorld();
+  //console.log(worldAreas);
   
 }
 
 function setup() {
+  
   // Take square size of smallest for canvas.
   let w = windowWidth >
           windowHeight ? 
@@ -30,10 +33,12 @@ function setup() {
   createCanvas(w,w);
 
   textAlign(CENTER, CENTER);
-  
-  generateArea(0,0);
- 
   player.size=w/10;
+  generateArea(0,-1);
+  //generateArea(0,0);
+  generateAreaIfNeeded(0,0);
+  //drawAreaObjects();
+  
 }
 
 function draw() {
@@ -44,7 +49,7 @@ function draw() {
   textSize(26);
   strokeWeight(4);
   stroke(0); fill(255);
-  text(`area ${key}`,64,20);
+  text(`area ${currentArea.x},${currentArea.y}`,64,20);
   text(`world seed ${worldSeed}`,
        width-170,height-20);
 }

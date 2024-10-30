@@ -13,3 +13,5 @@ bug - editor no longer drawing rect for solid objs, nor behaving correctly with 
 add default solidity and order for specific emojis. Needs to be for editor as well as procedural area generator.
 
 bug - game no longer recognising new areas from file? Recognises 0,0, but seemingly nothing else (not even ghosting in solid objects -- as happens still with 0,0 routinely). NB editor does not have the problem with area 1,0.
+
+logical bug - prevent situation of player spawning in new area trapped in midst of solid objects.

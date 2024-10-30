@@ -61,7 +61,7 @@ function renderAreaToImage(objects) {
   buffer.textAlign(CENTER, CENTER);
   buffer.background(0,156,0);
   
-  // Draw all objects to the buffer
+  // Draw all objects to the buffer.
   for (let obj of objects) {
     buffer.textSize(obj.size);
     buffer.text(obj.emoji, 

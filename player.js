@@ -5,7 +5,7 @@ let player = {
   y: 200,
   speed: 10,
   emoji: '🦆',
-  size: 0
+  size: 1
 };
 
 let targetX = 200;
@@ -25,8 +25,7 @@ function drawPlayer(){
        lerp(player.y,round(player.y/player.size)*player.size,0.7));
 }
 
-// Collision auxillary system.
-// Collision detection helper function
+// Collision auxiliary system.
 function checkCollision(x, y, gameObjects) {
   // Convert pixel coordinates to grid coordinates.
   const gridX = Math.floor(x / player.size);
@@ -34,7 +33,7 @@ function checkCollision(x, y, gameObjects) {
   
   // Check if any solid object occupies this grid position
   for (let obj of gameObjects) {
-    if (obj.solid) {  // Add this property to your gameObjects
+    if (obj.solid=='1') {  // Add this property to your gameObjects
       const objGridX = Math.floor(obj.x / player.size);
       const objGridY = Math.floor(obj.y / player.size);
       
